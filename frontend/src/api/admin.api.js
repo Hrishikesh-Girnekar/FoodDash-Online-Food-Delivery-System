@@ -11,4 +11,7 @@ export const adminApi = {
   unbanUser: (id) =>
     api.put(`/admin/users/${id}/unban`),
 
+  getDashboardStats: () =>
+  api.get('/admin/dashboard/stats'),
+
 }
