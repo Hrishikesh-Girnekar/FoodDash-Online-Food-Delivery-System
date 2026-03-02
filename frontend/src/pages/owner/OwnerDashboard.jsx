@@ -18,7 +18,7 @@ import {
 import { StatCardSkeleton } from "../../components/common/Skeleton";
 import { formatCurrency } from "../../utils/helpers";
 import { Link } from "react-router-dom";
-import { getDashboardStats } from "../../api/restaurant.api";
+import { getDashboardStats, getRecentOrders } from "../../api/restaurant.api";
 import toast from "react-hot-toast";
 
 const DAILY_REVENUE = [
@@ -65,6 +65,7 @@ const STATUS_COLOR = {
 export default function OwnerDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recentOrders, setRecentOrders] = useState([]);
 
   // useEffect(() => {
   //   setTimeout(() => {
@@ -75,19 +76,36 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
+    fetchRecentOrders();
   }, []);
 
   const fetchDashboardStats = async () => {
     try {
       const res = await getDashboardStats();
       console.log(res);
-      
+
       setStats(res.data.data);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load dashboard stats");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecentOrders = async () => {
+    try {
+      const res = await getRecentOrders();
+      console.log(res.data);
+      
+
+      // Take only last 3 orders (latest first)
+      const orders = res.data.data.slice(-3).reverse();
+
+      setRecentOrders(orders);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load recent orders");
     }
   };
 
@@ -100,7 +118,7 @@ export default function OwnerDashboard() {
           color: "text-blue-500   bg-blue-50 dark:bg-blue-900/20",
         },
         {
-          label: "Today's Revenue",
+          label: "Total Revenue",
           value: formatCurrency(stats.totalRevenue),
           icon: HiCurrencyRupee,
           color: "text-brand-500  bg-brand-50 dark:bg-brand-900/20",
@@ -191,14 +209,14 @@ export default function OwnerDashboard() {
           </Link>
         </div>
         <div className="space-y-3">
-          {RECENT_ORDERS.map((order) => (
+          {recentOrders.map((order) => (
             <div
               key={order.id}
               className="flex items-center gap-4 p-3 rounded-xl bg-stone-50 dark:bg-stone-800"
             >
               <div className="flex-1">
                 <p className="font-semibold text-sm text-stone-800 dark:text-stone-100">
-                  {order.customer}
+                  {order.customerName}
                 </p>
                 <p className="text-xs text-stone-400 mt-0.5 truncate">
                   {order.items}
@@ -208,7 +226,7 @@ export default function OwnerDashboard() {
                 {order.status}
               </span>
               <span className="font-bold text-sm text-stone-700 dark:text-stone-300">
-                {formatCurrency(order.amount)}
+                {formatCurrency(order.totalAmount)}
               </span>
             </div>
           ))}

@@ -27,4 +27,7 @@ export const submitRestaurantForApproval = (data) =>
 export const getDashboardStats = () =>
     api.get('/owner/restaurants/dashboard/stats');
 
+export const getRecentOrders = () =>
+    api.get('/owner/restaurants/dashboard/recent-orders');
+
 
