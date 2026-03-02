@@ -24,4 +24,7 @@ export const toggleOwnerRestaurant = (id) =>
 export const submitRestaurantForApproval = (data) =>
   api.post("/restaurants", data);
 
+export const getDashboardStats = () =>
+    api.get('/owner/restaurants/dashboard/stats');
+
 
