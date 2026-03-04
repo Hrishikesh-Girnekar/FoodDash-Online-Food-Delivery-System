@@ -6,6 +6,7 @@ import Button from "../../components/common/Button";
 import axios from "axios";
 import { formatDate } from "../../utils/helpers";
 import toast from "react-hot-toast";
+import { adminApi } from "../../api/admin.api";
 
 export default function RestaurantApprovals() {
   const [pending, setPending] = useState([]);
@@ -14,7 +15,7 @@ export default function RestaurantApprovals() {
   const [rejecting, setRejecting] = useState(null);
   const [reason, setReason] = useState("");
 
-  const token = localStorage.getItem("fooddash_token");
+  const token = localStorage.getItem("accessToken");
 
   //  Fetch PENDING restaurants
   useEffect(() => {
@@ -27,14 +28,7 @@ export default function RestaurantApprovals() {
           return;
         }
 
-        const res = await axios.get(
-          "http://localhost:8080/api/v1/admin/restaurants/status/PENDING",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        const res = await adminApi.getRestaurantsByStatus("PENDING");
 
         const data = res.data.data || [];
         setPending(data);
@@ -52,15 +46,7 @@ export default function RestaurantApprovals() {
   // Approve restaurant
   const approve = async (id) => {
     try {
-      await axios.patch(
-        `http://localhost:8080/api/v1/admin/restaurants/${id}/status?status=APPROVED`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await adminApi.updateRestaurantStatus(id, "APPROVED");
 
       setPending((prev) => prev.filter((r) => r.id !== id));
       toast.success("Restaurant approved!");
@@ -78,15 +64,7 @@ export default function RestaurantApprovals() {
     }
 
     try {
-      await axios.patch(
-        `http://localhost:8080/api/v1/admin/restaurants/${rejecting.id}/status?status=REJECTED`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await adminApi.updateRestaurantStatus(rejecting.id, "REJECTED");
 
       setPending((prev) => prev.filter((r) => r.id !== rejecting.id));
       toast.success("Restaurant rejected");

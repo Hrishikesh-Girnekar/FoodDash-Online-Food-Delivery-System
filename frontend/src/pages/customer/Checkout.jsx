@@ -13,7 +13,6 @@ import { formatCurrency } from "../../utils/helpers";
 import Button from "../../components/common/Button";
 import { orderApi } from "../../api/order.api";
 import toast from "react-hot-toast";
-import axios from "axios";
 
 const PAYMENT_METHODS = [
   { id: "UPI", label: "UPI", icon: HiDeviceMobile },
@@ -53,34 +52,11 @@ export default function Checkout() {
     return Object.keys(e).length === 0;
   };
 
-  // const placeOrder = async () => {
-  //   if (!validate()) return
-  //   setLoading(true)
-  //   try {
-  //     const payload = {
-  //       restaurantId,
-  //       items: items.map((i) => ({ menuItemId: i.id, quantity: i.quantity })),
-  //       deliveryAddress: address,
-  //       paymentMethod,
-  //       totalAmount: total,
-  //     }
-  //     const { data } = await orderApi.place(payload)
-  //     clearCart()
-  //     navigate('/customer/order-success', { state: { orderId: data.id || 'FD' + Date.now() } })
-  //   } catch {
-  //     toast.error('Failed to place order. Please try again.')
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
   const placeOrder = async () => {
     if (!validate()) return;
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("fooddash_token");
-
       const payload = {
         restaurantId,
         items: items.map((i) => ({
@@ -88,17 +64,7 @@ export default function Checkout() {
           quantity: i.quantity,
         })),
       };
-
-      const { data } = await axios.post(
-        "http://localhost:8080/api/v1/orders/place",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
+      const data = await orderApi.placeOrder(payload);
       clearCart();
 
       navigate("/customer/order-success", {

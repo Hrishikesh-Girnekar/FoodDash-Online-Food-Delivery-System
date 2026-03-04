@@ -5,11 +5,11 @@ import {
   useEffect,
   useCallback,
 } from "react";
-// import { authApi } from '../api/auth.api'
-import toast from "react-hot-toast";
-import axios from "axios";
 
-const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || "fooddash_token";
+import toast from "react-hot-toast";
+import { authApi } from "../api/auth.api";
+
+// const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || "fooddash_token";
 
 const AuthContext = createContext(null);
 
@@ -18,225 +18,95 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true); // initial auth check
 
   /* ── Initialise: load user from token ──────── */
-  // useEffect(() => {
-  //   const token = localStorage.getItem(TOKEN_KEY)
-  //   if (token) {
-  //     authApi.getProfile()
-  //       .then(({ data }) => setUser(data))
-  //       .catch(() => localStorage.removeItem(TOKEN_KEY))
-  //       .finally(() => setLoading(false))
-  //   } else {
-  //     setLoading(false)
-  //   }
-  // }, [])
+
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const accessToken = localStorage.getItem("accessToken");
     const role = localStorage.getItem("fooddash_role");
     const name = localStorage.getItem("fooddash_name");
+    const restaurants = JSON.parse(
+      localStorage.getItem("fooddash_restaurants") || "[]",
+    );
+    const activeRestaurant = localStorage.getItem("fooddash_activeRestaurant");
 
-    if (token && role) {
-      setUser({ token, role, name });
+    if (accessToken && role) {
+      setUser({
+        token: accessToken,
+        role,
+        name,
+        restaurants,
+        activeRestaurant,
+      });
     }
 
     setLoading(false);
   }, []);
 
   /* ── Login ──────────────────────────────────── */
-  // const login = useCallback(async (credentials) => {
-  //   const res = await authApi.login(credentials)
 
-  //   // 🔥 unwrap correctly
-  //   const { success, message, data } = res.data
-
-  //   if (!success || !data?.accessToken) {
-  //     throw new Error(message || 'Login failed')
-  //   }
-
-  //   localStorage.setItem(TOKEN_KEY, data.accessToken)
-  //   setUser({ token: data.accessToken })
-
-  //   toast.success(message)
-
-  //   return data   // return accessToken object
-  // }, [])
-
-  // const login = useCallback(async (credentials) => {
-  //   try {
-  //     const res = await axios.post(
-  //       "http://localhost:8080/api/v1/auth/login",
-  //       credentials,
-  //     );
-
-  //     const { success, message, data } = res.data;
-
-  //     if (!success || !data?.accessToken) {
-  //       throw new Error(message || "Login failed");
-  //     }
-
-  //     localStorage.setItem(TOKEN_KEY, data.accessToken);
-  //     localStorage.setItem("fooddash_role", data.role);
-  //     localStorage.setItem("fooddash_name", data.fullname);
-
-  //     // ✅ IMPORTANT: store role also
-  //     setUser({
-  //       token: data.accessToken,
-  //       role: data.role,
-  //       name: data.fullname,
-  //     });
-
-  //     toast.success(message);
-
-  //     return data;
-  //   } catch (err) {
-  //     throw new Error(
-  //       err.response?.data?.message || err.message || "Login failed",
-  //     );
-  //   }
-  // }, []);
   const login = useCallback(async (credentials) => {
-  try {
-    const res = await axios.post(
-      "http://localhost:8080/api/v1/auth/login",
-      credentials,
-    );
+    try {
+      const res = await authApi.login(credentials);
 
-    const { success, message, data } = res.data;
+      const { success, message, data } = res.data;
 
-    if (!success || !data?.accessToken) {
-      throw new Error(message || "Login failed");
-    }
+      if (!success || !data?.accessToken) {
+        throw new Error(message || "Login failed");
+      }
 
-    // ✅ Store token (same as before)
-    localStorage.setItem(TOKEN_KEY, data.accessToken);
+      //  Store tokens
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
 
-    // ✅ Store role (same as before)
-    localStorage.setItem("fooddash_role", data.role);
+      //  Store role & name
+      localStorage.setItem("fooddash_role", data.role);
+      localStorage.setItem("fooddash_name", data.fullname);
 
-    // ✅ Store fullname (same as before)
-    localStorage.setItem("fooddash_name", data.fullname);
-
-    // 🔥 NEW: store restaurants list
-    localStorage.setItem(
-      "fooddash_restaurants",
-      JSON.stringify(data.restaurants || [])
-    );
-
-    // 🔥 NEW: store active restaurant (default = first one if owner)
-    if (data.role === "RESTAURANT_OWNER" && data.restaurants?.length > 0) {
+      //  Store restaurants
       localStorage.setItem(
-        "fooddash_activeRestaurant",
-        data.restaurants[0].id
+        "fooddash_restaurants",
+        JSON.stringify(data.restaurants || []),
+      );
+
+      //  Store active restaurant if owner
+      let activeRestaurant = null;
+      if (data.role === "RESTAURANT_OWNER" && data.restaurants?.length > 0) {
+        activeRestaurant = data.restaurants[0].id;
+        localStorage.setItem("fooddash_activeRestaurant", activeRestaurant);
+      }
+
+      //  Update context state
+      setUser({
+        token: data.accessToken,
+        role: data.role,
+        name: data.fullname,
+        restaurants: data.restaurants || [],
+        activeRestaurant,
+      });
+
+      toast.success(message);
+      return data;
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.message || err.message || "Login failed",
       );
     }
-
-    // 🔥 UPDATED setUser (added restaurants)
-    setUser({
-      token: data.accessToken,
-      role: data.role,
-      name: data.fullname,
-      restaurants: data.restaurants || [],
-      activeRestaurant:
-        data.role === "RESTAURANT_OWNER" && data.restaurants?.length > 0
-          ? data.restaurants[0].id
-          : null,
-    });
-
-    toast.success(message);
-
-    return data;
-  } catch (err) {
-    throw new Error(
-      err.response?.data?.message || err.message || "Login failed",
-    );
-  }
-}, []);
-
-  // const login = useCallback(async (credentials) => {
-  //   try {
-  //     const res = await axios.post(
-  //       "http://localhost:8080/api/v1/auth/login",
-  //       credentials
-  //     )
-  //     console.log(res.data);
-
-  //     const { accessToken, role, name } = res.data
-
-  //     if (!accessToken) {
-  //       throw new Error("Login failed")
-  //     }
-
-  //     // ✅ Save everything properly
-  //     localStorage.setItem(TOKEN_KEY, accessToken)
-  //     localStorage.setItem("fooddash_role", role)
-  //     localStorage.setItem("fooddash_name", name)
-
-  //     // ✅ Update state
-  //     setUser({
-  //       token: accessToken,
-  //       role,
-  //       name
-  //     })
-
-  //     toast.success("Login successful")
-
-  //     return res.data
-
-  //   } catch (err) {
-  //     throw new Error(
-  //       err.response?.data?.message ||
-  //       err.message ||
-  //       "Login failed"
-  //     )
-  //   }
-  // }, [])
-
-  /* ── Register ───────────────────────────────── */
-  // const register = useCallback(async (userData) => {
-  //   const res = await authApi.register(userData)
-
-  //   const { success, message } = res
-
-  //   if (!success) {
-  //     throw new Error(message || 'Registration failed')
-  //   }
-
-  //   toast.success(message)
-
-  //   return true
-  // }, [])
+  }, []);
 
   /* ── Logout ─────────────────────────────────── */
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("fooddash_role");
     localStorage.removeItem("fooddash_name");
+    localStorage.removeItem("fooddash_restaurants");
+    localStorage.removeItem("fooddash_activeRestaurant");
     localStorage.removeItem(import.meta.env.VITE_CART_KEY || "fooddash_cart");
+
     setUser(null);
     toast.success("Logged out successfully");
   }, []);
 
   /* ── Update profile ─────────────────────────── */
-  // const updateUser = useCallback((updates) => {
-  //   setUser((prev) => ({ ...prev, ...updates }));
-  // }, []);
-  // const updateUser = useCallback((updates) => {
-  //   setUser((prev) => {
-  //     const updated = { ...prev, ...updates };
-  //     localStorage.setItem("user", JSON.stringify(updated)); // 👈 add this
-  //     return updated;
-  //   });
-  // }, []);
-  // const updateUser = useCallback((updates) => {
-  //   setUser((prev) => {
-  //     const updated = { ...prev, ...updates };
-
-  //     if (updates.name) {
-  //       localStorage.setItem("fooddash_name", updates.name);
-  //     }
-
-  //     return updated;
-  //   });
-  // }, []);
   const updateUser = useCallback((updates) => {
     setUser((prev) => {
       const updated = { ...prev, ...updates };
