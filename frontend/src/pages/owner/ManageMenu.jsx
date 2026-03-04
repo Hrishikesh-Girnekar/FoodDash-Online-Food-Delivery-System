@@ -26,7 +26,7 @@ export default function ManageMenu() {
   const [saving, setSaving] = useState(false);
   const [restaurantId, setRestaurantId] = useState(null);
   const [restaurants, setRestaurants] = useState([]);
-  
+
   useEffect(() => {
     const storedRestaurants = JSON.parse(
       localStorage.getItem("fooddash_restaurants") || "[]",
@@ -44,19 +44,27 @@ export default function ManageMenu() {
   const fetchMenu = async (id) => {
     try {
       const res = await menuApi.getByRestaurant(id);
-      console.log(res);
 
       if (res.data.success) {
-        setItems(res.data.data || []);
+        const menuItems = res.data.data || [];
+        setItems(menuItems);
+        {
+          items.length === 0 && (
+            <EmptyState
+              title="No Menu Items"
+              description="Start by adding your first dish."
+            />
+          );
+        }
       } else {
         toast.error(res.data.message || "Failed to fetch menu");
       }
-    } catch(err) {
+    } catch (err) {
       const backendMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
         "Something went wrong while fetching menu";
-
+        
       toast.error(backendMessage);
     }
   };

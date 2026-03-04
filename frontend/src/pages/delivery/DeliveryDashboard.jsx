@@ -41,20 +41,19 @@ export default function DeliveryDashboard() {
 
       const today = new Date().toISOString().split("T")[0];
 
-      const formatted = backendData.map((o) => ({
-        id: o.orderId,
-        restaurantName: o.restaurantName,
-        customerAddress: "Pune, Hinjewadi phase 1",
-        customerPhone: "9876543210",
-        status: o.status,
-        amount: Number(o.totalAmount),
-        items: o.items.map((i) => `${i.name} x${i.quantity}`).join(", "),
-        assignedAt: o.createdAt,
-        accepted: true,
-      }));
-
-      
-      
+      const formatted = backendData
+        .map((o) => ({
+          id: o.orderId,
+          restaurantName: o.restaurantName,
+          customerAddress: "Pune, Hinjewadi phase 1",
+          customerPhone: "9876543210",
+          status: o.status,
+          amount: Number(o.totalAmount),
+          items: o.items.map((i) => `${i.name} x${i.quantity}`).join(", "),
+          assignedAt: o.createdAt,
+          accepted: true,
+        }))
+        .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt)); //  latest first;
 
       //Calculate today's stats
       const todayDeliveries = formatted.filter(

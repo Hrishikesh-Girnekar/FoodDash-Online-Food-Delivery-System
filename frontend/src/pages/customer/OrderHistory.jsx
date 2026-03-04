@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { HiClock, HiCheckCircle, HiXCircle, HiTruck,  } from "react-icons/hi";
+import { HiClock, HiCheckCircle, HiXCircle, HiTruck } from "react-icons/hi";
 import EmptyState from "../../components/common/EmptyState";
 import {
   formatCurrency,
@@ -13,14 +13,13 @@ import { StarPicker } from "../../components/restaurant/RatingStars";
 import { orderApi } from "../../api/order.api";
 import toast from "react-hot-toast";
 
-
 const STATUS_ICON = {
   PENDING: HiClock,
   CONFIRMED: HiCheckCircle,
   PREPARING: HiClock,
   ASSIGNED: HiTruck,
   PICKED_UP: HiTruck,
-  ON_THE_WAY:HiTruck,
+  ON_THE_WAY: HiTruck,
   OUT_FOR_DELIVERY: HiTruck,
   DELIVERED: HiCheckCircle,
   CANCELLED: HiXCircle,
@@ -40,7 +39,10 @@ export default function OrderHistory() {
     const fetchOrders = async () => {
       try {
         const data = await orderApi.getMyOrders();
-        setOrders(data);
+        const sortedOrders = [...data].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        );
+        setOrders(sortedOrders);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
         toast.error("Failed to load orders");
