@@ -13,7 +13,7 @@ import { useAuth } from "../../context/AuthContext";
 import { formatCurrency } from "../../utils/helpers";
 import Button from "../../components/common/Button";
 import { orderApi } from "../../api/order.api";
-import { paymentApi } from "../../api/payment.api"; 
+import { paymentApi } from "../../api/Payment.api"; 
 import toast from "react-hot-toast";
 
 const PAYMENT_METHODS = [
