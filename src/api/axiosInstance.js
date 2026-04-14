@@ -5,7 +5,7 @@ const BASE_URL ="https://fooddash-online-food-delivery-system.onrender.com/api/v
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 120000,
   headers: { "Content-Type": "application/json" },
 });
 
