@@ -12,6 +12,8 @@ import MenuItemCard from "../../components/restaurant/MenuItemCard";
 import { MenuItemSkeleton } from "../../components/common/Skeleton";
 import { formatCurrency } from "../../utils/helpers";
 import { useWishlist } from "../../hooks/useWishlist";
+import { getRestaurantById } from "../../api/restaurant.api";
+import { menuApi } from "../../api/menu.api";
 import axios from "axios";
 
 export default function RestaurantDetail() {
@@ -29,17 +31,10 @@ export default function RestaurantDetail() {
         setLoading(true);
 
         // Fetch restaurant details
-        const restaurantRes = await axios.get(
-          `http://localhost:8080/api/v1/restaurants/${id}`,
-        );
-
+        const restaurantRes = await getRestaurantById(id);
         setRestaurant(restaurantRes.data.data);
-
         // Fetch menu items by restaurant id
-        const menuRes = await axios.get(
-          `http://localhost:8080/api/v1/menu/restaurant/${id}`,
-        );
-
+        const menuRes = await menuApi.getByRestaurant(id);
         const items = menuRes.data.data || [];
 
         // Transform backend fields → match frontend structure
@@ -103,7 +98,7 @@ export default function RestaurantDetail() {
   const sections = Object.keys(menu);
 
   console.log(restaurant);
-  
+
   return (
     <div className="page-enter">
       {/* Hero banner */}

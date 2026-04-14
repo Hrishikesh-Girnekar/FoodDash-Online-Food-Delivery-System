@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HiSearch, HiAdjustments } from "react-icons/hi";
-import axios from "axios";
-
 import RestaurantCard from "../../components/restaurant/RestaurantCard";
 import { RestaurantCardSkeleton } from "../../components/common/Skeleton";
 import EmptyState from "../../components/common/EmptyState";
@@ -11,6 +9,8 @@ import Pagination from "../../components/common/Pagination";
 import { useDebounce } from "../../hooks/useDebounce";
 import { usePagination } from "../../hooks/usePagination";
 import { CUISINES, SORT_OPTIONS } from "../../utils/constants";
+import { getApprovedRestaurants } from "../../api/restaurant.api";
+
 
 export default function RestaurantList() {
   const [searchParams] = useSearchParams();
@@ -36,12 +36,7 @@ export default function RestaurantList() {
       try {
         const token = localStorage.getItem("fooddash_token");
 
-        const res = await axios.get(
-          "http://localhost:8080/api/v1/restaurants/approved",
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          },
-        );
+        const res = await getApprovedRestaurants();
 
         const { success, data } = res.data;
 

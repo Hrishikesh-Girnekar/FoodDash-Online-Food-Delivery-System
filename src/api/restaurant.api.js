@@ -8,6 +8,10 @@ export const getApprovedRestaurants = () =>
 export const getOwnerRestaurants = () =>
   api.get("/restaurants");
 
+// GET single restaurant by ID
+export const getRestaurantById = (id) =>
+  api.get(`/restaurants/${id}`);
+
 // OWNER - CREATE restaurant
 export const createOwnerRestaurant = (data) =>
   api.post("/restaurants", data,{
