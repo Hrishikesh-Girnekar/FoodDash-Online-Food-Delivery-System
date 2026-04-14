@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext'
 import Button from '../../components/common/Button'
 import toast from 'react-hot-toast'
 import { ROLES as ROLE_CONST } from '../../utils/constants'
+import { authApi } from "../../api/auth.api"
 import axios from 'axios'
 
 const ROLE_OPTIONS = [
@@ -49,10 +50,7 @@ export default function Register() {
   }
 
   try {
-    const res = await axios.post(
-      "http://localhost:8080/api/v1/auth/register",
-      payload
-    )
+    const res = await authApi.register(payload);
 
     const { success, message } = res.data
 
