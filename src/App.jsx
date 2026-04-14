@@ -23,6 +23,8 @@ const Home              = lazy(() => import('./pages/public/Home'))
 const RestaurantList    = lazy(() => import('./pages/public/RestaurantList'))
 const RestaurantDetail  = lazy(() => import('./pages/public/RestaurantDetail'))
 const NotFound          = lazy(() => import('./pages/public/NotFound'))
+const Offers            = lazy(() => import('./pages/public/Offers'))  
+const About             = lazy(() => import('./pages/public/About'))          
 
 /* ── Customer Pages ──────────────────────────────── */
 const CustomerDashboard = lazy(() => import('./pages/customer/CustomerDashboard'))
@@ -41,12 +43,13 @@ const AdminAnalytics        = lazy(() => import('./pages/admin/AdminAnalytics'))
 const AdminOrders           = lazy(() => import('./pages/admin/AdminOrders'))
 
 /* ── Owner Pages ─────────────────────────────────── */
-const OwnerDashboard   = lazy(() => import('./pages/owner/OwnerDashboard'))
-const ManageMenu       = lazy(() => import('./pages/owner/ManageMenu'))
-const OwnerOrders      = lazy(() => import('./pages/owner/OwnerOrders'))
-const OwnerRestaurant  = lazy(() => import('./pages/owner/OwnerRestaurant'))
-const ManageOwnerRestaurants = lazy(() => import('./pages/owner/ManageOwnerRestaurants'))
-const OwnerProfile           = lazy(() => import('./pages/owner/OwnerProfile'))
+const OwnerDashboard          = lazy(() => import('./pages/owner/OwnerDashboard'))
+const ManageMenu              = lazy(() => import('./pages/owner/ManageMenu'))
+const OwnerOrders             = lazy(() => import('./pages/owner/OwnerOrders'))
+const OwnerRestaurant         = lazy(() => import('./pages/owner/OwnerRestaurant'))
+const ManageOwnerRestaurants  = lazy(() => import('./pages/owner/ManageOwnerRestaurants'))
+const OwnerProfile            = lazy(() => import('./pages/owner/OwnerProfile'))
+const OwnerAnalytics          = lazy(() => import('./pages/owner/OwnerAnalytics'))
 /* ── Delivery Pages ──────────────────────────────── */
 const DeliveryDashboard = lazy(() => import('./pages/delivery/DeliveryDashboard'))
 const DeliveryEarnings  = lazy(() => import('./pages/delivery/DeliveryEarnings'))
@@ -73,6 +76,8 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="/restaurants"           element={<RestaurantList />} />
             <Route path="/restaurants/:id"       element={<RestaurantDetail />} />
+            <Route path="/offers"                element={<Offers />} />
+            <Route path="/About"                element={<About />} />
           </Route>
 
           {/* ── Customer (protected) ────────────────── */}
@@ -121,6 +126,7 @@ export default function App() {
             <Route path="/owner/menu"          element={<ManageMenu />} />
             <Route path="/owner/orders"        element={<OwnerOrders />} />
             <Route path="/owner/profile"        element={<OwnerProfile />} />
+            <Route path="/owner/analytics"        element={<OwnerAnalytics />} />
           </Route>
 
           {/* ── Delivery (protected) ────────────────── */}

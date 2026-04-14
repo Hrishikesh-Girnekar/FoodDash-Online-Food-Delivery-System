@@ -71,19 +71,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setStats({
-  //       totalUsers:       12450,
-  //       activeRestaurants: 387,
-  //       totalOrders:      89234,
-  //       totalRevenue:     4250000,
-  //       pendingApprovals: 14,
-  //       activeDeliveries: 42,
-  //     })
-  //     setLoading(false)
-  //   }, 700)
-  // }, [])
 
   useEffect(() => {
     fetchStats();

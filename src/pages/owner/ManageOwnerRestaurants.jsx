@@ -19,7 +19,6 @@ import {
   toggleOwnerRestaurant,
 } from "../../api/restaurant.api";
 
-
 const DEFAULT_RESTAURANT = {
   name: "",
   description: "",
@@ -35,6 +34,8 @@ export default function ManageOwnerRestaurants() {
   const [form, setForm] = useState(DEFAULT_RESTAURANT);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     fetchOwnerRestaurants();
@@ -51,15 +52,22 @@ export default function ManageOwnerRestaurants() {
     }
   };
 
-    const openAdd = () => {
+  const openAdd = () => {
     setEditing(null);
     setForm(DEFAULT_RESTAURANT);
+    setImage(null);
+    setPreview(null);
     setOpen(true);
   };
 
   const openEdit = (restaurant) => {
     setEditing(restaurant);
     setForm({ ...restaurant });
+
+    // existing image from backend
+    setPreview(restaurant.imageUrl || null);
+    setImage(null);
+
     setOpen(true);
   };
 
@@ -70,15 +78,28 @@ export default function ManageOwnerRestaurants() {
     }
 
     setSaving(true);
+
     try {
+      const formData = new FormData();
+
+      Object.keys(form).forEach((key) => {
+        formData.append(key, form[key]);
+      });
+
+      if (image) {
+        formData.append("image", image); // Cloudinary upload
+      }
+
       if (editing) {
-        await updateOwnerRestaurant(editing.id, form);
+        const res = await updateOwnerRestaurant(editing.id, formData);
+
         setRestaurants((prev) =>
-          prev.map((r) => (r.id === editing.id ? { ...r, ...form } : r))
+          prev.map((r) => (r.id === editing.id ? res.data.data : r)),
         );
+
         toast.success("Restaurant updated!");
       } else {
-        const res = await createOwnerRestaurant(form);
+        const res = await createOwnerRestaurant(formData);
         setRestaurants((prev) => [...prev, res.data.data]);
         toast.success("Restaurant added!");
       }
@@ -107,7 +128,7 @@ export default function ManageOwnerRestaurants() {
   const toggleOpen = async (id) => {
     try {
       setRestaurants((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, isOpen: !r.isOpen } : r))
+        prev.map((r) => (r.id === id ? { ...r, isOpen: !r.isOpen } : r)),
       );
 
       await toggleOwnerRestaurant(id);
@@ -118,12 +139,21 @@ export default function ManageOwnerRestaurants() {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImage(file);
+    setPreview(URL.createObjectURL(file)); // preview
+  };
+
+  console.log(restaurants);
   const grouped = restaurants.reduce((acc, r) => {
     (acc[r.cuisine] = acc[r.cuisine] || []).push(r);
     return acc;
   }, {});
 
-   return (
+  return (
     <div className="space-y-6 page-enter">
       <div className="flex items-center justify-between">
         <div>
@@ -272,6 +302,40 @@ export default function ManageOwnerRestaurants() {
                 }
               />
             </div>
+            <div className="col-span-2">
+              <label className="label">Restaurant Image</label>
+
+              {preview && (
+                <div className="relative mb-3 group">
+                  <img
+                    src={preview}
+                    alt="preview"
+                    className="w-full h-44 object-cover rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm"
+                  />
+
+                  {/* subtle overlay on hover */}
+                  <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+                    <span className="text-white text-sm opacity-0 group-hover:opacity-100 transition">
+                      Change Image
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full text-sm text-stone-500 dark:text-stone-400 
+               file:mr-4 file:py-2 file:px-4 
+               file:rounded-lg file:border-0 
+               file:text-sm file:font-medium 
+               file:bg-brand-50 file:text-brand-600 
+               hover:file:bg-brand-100 
+               dark:file:bg-brand-900/20 dark:file:text-brand-400
+               cursor-pointer"
+              />
+            </div>
 
             <div>
               <label className="label">Open Status</label>
@@ -279,7 +343,9 @@ export default function ManageOwnerRestaurants() {
                 <input
                   type="checkbox"
                   checked={form.isOpen}
-                  onChange={(e) => setForm({ ...form, isOpen: e.target.checked })}
+                  onChange={(e) =>
+                    setForm({ ...form, isOpen: e.target.checked })
+                  }
                   className="w-4 h-4 accent-brand-500"
                 />
                 <span className="text-sm text-stone-600 dark:text-stone-400">

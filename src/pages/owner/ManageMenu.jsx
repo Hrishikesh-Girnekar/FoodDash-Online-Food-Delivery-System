@@ -6,6 +6,7 @@ import Button from "../../components/common/Button";
 import EmptyState from "../../components/common/EmptyState";
 import { formatCurrency } from "../../utils/helpers";
 import { menuApi } from "../../api/menu.api";
+import { getOwnerRestaurants } from "../../api/restaurant.api";
 import toast from "react-hot-toast";
 
 const DEFAULT_ITEM = {
@@ -26,20 +27,29 @@ export default function ManageMenu() {
   const [saving, setSaving] = useState(false);
   const [restaurantId, setRestaurantId] = useState(null);
   const [restaurants, setRestaurants] = useState([]);
+  const [image, setImage] = useState(null);
+  const [existingImage, setExistingImage] = useState(null);
 
   useEffect(() => {
-    const storedRestaurants = JSON.parse(
-      localStorage.getItem("fooddash_restaurants") || "[]",
-    );
-    const activeRestaurant = localStorage.getItem("fooddash_activeRestaurant");
-
-    setRestaurants(storedRestaurants);
-
-    if (activeRestaurant) {
-      setRestaurantId(activeRestaurant);
-      fetchMenu(activeRestaurant);
-    }
+    fetchRestaurants();
   }, []);
+
+  const fetchRestaurants = async () => {
+    try {
+      const res = await getOwnerRestaurants();
+      const data = res.data.data || [];
+
+      setRestaurants(data);
+
+      if (data.length > 0) {
+        const firstId = data[0].id;
+        setRestaurantId(firstId);
+        fetchMenu(firstId);
+      }
+    } catch {
+      toast.error("Failed to load restaurants");
+    }
+  };
 
   const fetchMenu = async (id) => {
     try {
@@ -64,11 +74,12 @@ export default function ManageMenu() {
         err.response?.data?.message ||
         err.response?.data?.error ||
         "Something went wrong while fetching menu";
-        
+
       toast.error(backendMessage);
     }
   };
   const handleRestaurantChange = (id) => {
+    const parsedId = Number(id);
     localStorage.setItem("fooddash_activeRestaurant", id);
     setRestaurantId(id);
     fetchMenu(id);
@@ -82,10 +93,19 @@ export default function ManageMenu() {
 
   const openEdit = (item) => {
     setEditing(item);
+
     setForm({
-      ...item,
-      price: item.price?.toString() || "",
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      isVeg: item.isVeg,
+      isAvailable: item.isAvailable,
+      isBestseller: item.isBestseller,
     });
+
+    setImage(null); // reset new image
+    setExistingImage(item.imageUrl); // 🔥 add this state
     setOpen(true);
   };
 
@@ -103,17 +123,24 @@ export default function ManageMenu() {
     setSaving(true);
 
     try {
-      const payload = {
-        ...form,
-        price: Number(form.price),
-        restaurantId,
-      };
+      const formData = new FormData();
+
+      Object.keys(form).forEach((key) => {
+        formData.append(key, form[key]);
+      });
+
+      formData.append("price", Number(form.price));
+      formData.append("restaurantId", restaurantId);
+
+      if (image) {
+        formData.append("image", image);
+      }
 
       if (editing) {
-        await menuApi.updateItem(editing.id, payload);
+        await menuApi.updateItem(editing.id, formData);
         toast.success("Item updated!");
       } else {
-        await menuApi.addItem(payload);
+        await menuApi.addItem(formData);
         toast.success("Item added!");
       }
 
@@ -299,11 +326,19 @@ export default function ManageMenu() {
 
             <div>
               <label className="label">Category</label>
-              <input
+              <select
                 className="input"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-              />
+              >
+                <option value="">Select category</option>
+                <option value="Starters">Starters</option>
+                <option value="Main Course">Main Course</option>
+                <option value="Bread & Rice">Bread & Rice</option>
+                <option value="Desserts">Desserts</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Snacks">Snacks</option>
+              </select>
             </div>
 
             <div className="col-span-2">
@@ -315,6 +350,56 @@ export default function ManageMenu() {
                   setForm({ ...form, description: e.target.value })
                 }
               />
+            </div>
+
+            <div className="col-span-2">
+              <label className="label">Item Image</label>
+
+              <div className="flex items-center gap-4">
+                {/* Upload Button */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImage(e.target.files[0])}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+
+                  <div className="px-4 py-2 border border-dashed border-stone-300 dark:border-stone-600 rounded-lg text-sm text-stone-500 hover:border-primary hover:text-primary transition cursor-pointer">
+                    📷 Upload
+                  </div>
+                </div>
+
+                {/* File Name */}
+                {image && (
+                  <p className="text-xs text-stone-400 truncate max-w-[150px]">
+                    {image.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Preview */}
+              {(image || existingImage) && (
+                <div className="mt-3 flex items-center gap-3">
+                  <img
+                    src={image ? URL.createObjectURL(image) : existingImage}
+                    alt="preview"
+                    className="w-20 h-20 object-cover rounded-lg border shadow-sm"
+                  />
+
+                  {/* Remove Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImage(null);
+                      setExistingImage(null); // 🔥 remove existing too
+                    }}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>

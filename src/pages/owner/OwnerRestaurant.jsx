@@ -2,10 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { HiOfficeBuilding, HiClock, HiCheckCircle } from "react-icons/hi";
 import Button from "../../components/common/Button";
-import { submitRestaurantForApproval } from '../../api/restaurant.api'
+import { submitRestaurantForApproval } from "../../api/restaurant.api";
 import { CUISINES } from "../../utils/constants";
 import toast from "react-hot-toast";
-import axios from "axios";
 
 const OWNER_RESTAURANT = null; // null means not yet created
 
@@ -24,18 +23,24 @@ export default function OwnerRestaurant() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [image, setImage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const payload = {
-        ...form,
-        costForTwo: Number(form.costForTwo),
-      };
+      const formData = new FormData();
 
-      const res = await submitRestaurantForApproval(payload);
+      // append all fields
+      Object.keys(form).forEach((key) => {
+        formData.append(key, form[key]);
+      });
+
+      formData.append("costForTwo", Number(form.costForTwo));
+      formData.append("image", image);
+
+      const res = await submitRestaurantForApproval(formData);
 
       if (!res.data.success) {
         throw new Error(res.data.message);
@@ -132,6 +137,34 @@ export default function OwnerRestaurant() {
                   setForm({ ...form, description: e.target.value })
                 }
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="label">Restaurant Image *</label>
+
+              <label className="flex items-center justify-center gap-2 px-4 py-3 border rounded-lg cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+                📷 Upload Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  required
+                />
+              </label>
+
+              {image && (
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="preview"
+                  className="mt-3 h-32 rounded-lg object-cover"
+                />
+              )}
+              {image && (
+                <p className="text-sm mt-2 text-stone-500">
+                  Selected: {image.name}
+                </p>
+              )}
             </div>
 
             <div>

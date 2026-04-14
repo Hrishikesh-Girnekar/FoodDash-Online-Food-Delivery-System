@@ -24,7 +24,7 @@ export default function Sidebar({ links, title, icon }) {
         <span className="text-2xl">{icon}</span>
         {(!collapsed || mobile) && (
           <div>
-            <Link to='/'>
+            <Link to="/">
               <p className="font-display font-bold text-stone-800 dark:text-stone-100">
                 Food<span className="text-brand-500">Dash</span>
               </p>
@@ -42,16 +42,16 @@ export default function Sidebar({ links, title, icon }) {
             key={to}
             to={to}
             end={exact}
-            onClick={() => mobile && setMobileOpen(false)}
+            onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-              flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-              transition-all duration-150
-              ${
-                isActive
-                  ? "bg-brand-500 text-white shadow-brand"
-                  : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
-              }
-            `}
+    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+    transition-all duration-150
+    ${
+      isActive
+        ? "bg-brand-500 text-white shadow-brand"
+        : "text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
+    }
+  `}
           >
             <Icon className="w-5 h-5 flex-shrink-0" />
             {(!collapsed || mobile) && <span>{label}</span>}
